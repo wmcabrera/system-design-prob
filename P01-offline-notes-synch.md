@@ -91,81 +91,13 @@ Explain:
 
 ### 1. High-Level Architecture
 
-Describe the main components running on each device.
-
-A possible structure is:
-
-```text
-Notes Application
-       |
-Local Notes Database
-       |
-Change Log
-       |
-Synchronization Service
-```
-
-Explain the responsibility of each component.
-
 ### 2. Local Write Path
-
-Describe what happens when a user edits a note while offline.
-
-Your answer should address:
-
-* Updating the local database
-* Assigning a version to the change
-* Recording the change durably
-* Returning success to the application
-* Avoiding any dependency on the other device
 
 ### 3. Versioning
 
-Design a version identifier for each field update.
-
-For example:
-
-```text
-(logical counter, device ID)
-```
-
-Explain:
-
-* How the logical counter is maintained
-* Why the device ID is needed
-* How two versions are compared
-* What happens when the counters are equal
-
 ### 4. Synchronization Protocol
 
-Describe what happens when the phone and tablet connect.
-
-Your protocol should cover:
-
-1. Authenticating the other device
-2. Determining which changes are missing
-3. Sending missing changes
-4. Applying received changes
-5. Comparing field versions
-6. Acknowledging received updates
-7. Retrying after an interrupted connection
-
 ### 5. Duplicate Messages
-
-Each change should have a unique identifier, such as:
-
-```text
-changeId = deviceId + local sequence number
-```
-
-Example:
-
-```text
-phone:42
-tablet:19
-```
-
-Explain how the receiving device detects a duplicate change and why applying the same change multiple times must be safe.
 
 ### 6. Out-of-Order Messages
 
@@ -175,82 +107,11 @@ Explain why version 8 must not overwrite version 10 and how the stored version m
 
 ### 7. Deletion
 
-Treat deletion as a versioned update rather than immediately removing the note.
-
-For example:
-
-```json
-{
-  "deleted": {
-    "value": true,
-    "logicalCounter": 20,
-    "deviceId": "phone"
-  }
-}
-```
-
-Explain:
-
-* Why the system needs a tombstone
-* How the tombstone prevents an old copy from recreating a deleted note
-* How deletion competes with a concurrent edit
-* When the tombstone may be permanently removed
-
-For this simplified system, assume that a tombstone may be removed after both known devices acknowledge the deletion.
-
 ### 8. Failure Cases
 
-Explain how your design handles these situations:
 
-* The connection fails halfway through synchronization.
-* The same change is delivered multiple times.
-* Changes arrive in a different order on each device.
-* One device has an incorrect physical clock.
-* A device restarts before sending its local changes.
-* A device reconnects with an old copy of a deleted note.
 
-## Constraints
-
-Assume:
-
-* There are exactly two devices.
-* Both devices store all of the user’s notes.
-* Each device has a permanent unique identifier.
-* Local writes should succeed immediately.
-* Network connections may be unreliable.
-* Messages may be duplicated or reordered.
-* Automatic text merging is not required.
-* Conflict resolution is last-write-wins per field.
-* A logical clock should be used instead of relying exclusively on wall-clock timestamps.
-
-## Expected Design
-
-A reasonable architecture may look like this:
-
-```text
-┌────────────── Phone ──────────────┐
-│ Notes application                 │
-│ Local database                    │
-│ Per-field version metadata        │
-│ Durable change log                │
-│ Logical clock                     │
-│ Synchronization service           │
-└────────────────┬──────────────────┘
-                 │
-           Wi-Fi / Internet
-                 │
-┌────────────────┴──────────────────┐
-│ Tablet                            │
-│ Notes application                 │
-│ Local database                    │
-│ Per-field version metadata        │
-│ Durable change log                │
-│ Logical clock                     │
-│ Synchronization service           │
-└───────────────────────────────────┘
-```
-
-## Core Principle
+## Core Principle (Hint)
 
 Your design should follow this principle:
 
